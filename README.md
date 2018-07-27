@@ -57,8 +57,8 @@ S3, Kafka, Spark, Spark-streaming, Cassandra, Machine-learning, WordNet, AirFlow
 - HDFS will be used to store longer-term data
 - Spark will batch process longer-term data
 - Cassandra will store analytical data
-- Flask will 
-![Proposed Architecture](./img/architecture.png)
+- Flask will query and present the data
+<img src="./img/architecture.png" width="400px"/>
 
 ## Stretch Goals
 Allow user to search for keywords or tags using ElasticSearch.
