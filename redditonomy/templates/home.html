@@ -5,26 +5,91 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- load MUI -->
-    <link href="//cdn.muicss.com/mui-0.9.39/css/mui.min.css" rel="stylesheet" type="text/css" />
-    <script src="//cdn.muicss.com/mui-0.9.39/js/mui.min.js"></script>
+    <link href="{{ url_for('static', filename='mui.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='rangeslider.min.css') }}" rel="stylesheet"/>
+    <script src="{{ url_for('static', filename='jquery.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='mui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='rangeslider.min.js') }}"></script>
 </head>
 
 <body>
-    <!-- example content -->
-    <div class="mui-container" style="margin: 75px auto;">
-        <div class="mui-panel">
-            <h1>Redditonomy</h1>
-            <form class="mui-form">
-                <div class="mui-textfield">
-                    <input type="text" placeholder="Enter a keyword">
-                </div>
-                <button type="submit" class="mui-btn mui-btn--primary mui-btn--raised">Go!</button>
-            </form>
-        </div>
-        <div class="mui-panel">
+    <div class="mui-appbar mui--text-center">
+        <table width="100%">
+            <tr style="vertical-align:middle;">
+                <td class="mui--appbar-height">
+                    <h1>/r/edditonomy</h1>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="mui-container" style="margin: 50px auto;">
+        <div class="mui-panel" style="padding: 50px;">
+            <div class="mui--text-headline">
+                /r/edditonomy is a taxonomy builder for subreddit communities.
+            </div>
+            <div class="mui--text-subhead">
+                it uses latent dirichlet allocation (lda) to extract the most important features.
+            </div>
         </div>
     </div>
+    {% set panel = True %}
+    {% if panel %}
+    <div class="mui-container" style="margin: 50px auto;">
+        <div class="mui-row">
+            <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
+                <div class="mui-panel" style="padding: 50px;">
+                    <h2>choose a subreddit</h2>
+                    <div class="mui-dropdown">
+                        <button class="mui-btn mui-btn--primary" data-mui-toggle="dropdown">
+                            subreddits
+                            <span class="mui-caret"></span>
+                        </button>
+                        {% set subreddits = ['/r/politics', '/r/worldnews', '/r/nba'] %}
+                        <ul class="mui-dropdown__menu">
+                            {% for subreddit in subreddits %}
+                            <li><a href="#">{{ subreddit }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <h2>choose a daterange</h2>
+                    <input
+                        type="range"
+                        min="10"                    // default 0
+                        max="1000"                  // default 100
+                        step="10"                   // default 1
+                        value="300"                 // default min + (max-min)/2
+                        data-orientation="vertical" // default horizontal
+                        >
+                </div>
+            </div>
+            {% set subreddit = '/r/politics' %}
+            {% set tax = [('republican', 0.02), ('democrat', 0.018), ('impeach', 0.015)] %}
+            <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
+                <div class="mui-panel" style="padding: 50px;">
+                    <h2>Redditonomy for <div class="mui--text-accent-secondary">{{ subreddit }}</div></h2>
+                    <table class="mui-table mui-table--bordered">
+                        <thead>
+                            <tr>
+                                <th>term</th>
+                                <th>relevancy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for term in tax %}
+                            <tr>
+                                <td>{{ term[0] }}</td>
+                                <td>{{ term[1] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    </div>
+    {% endif %}
 </body>
 
+<script>
+ $('input[type="range"]').rangeslider();
+</script>
 </html>

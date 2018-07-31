@@ -4,4 +4,4 @@ from flask import request, session, g, redirect, \
 
 @app.route('/')
 def home():
-    return render_template('def.html')
+    return render_template('home.html')
