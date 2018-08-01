@@ -62,3 +62,15 @@ S3, Kafka, Spark, Spark-streaming, Cassandra, Machine-learning, WordNet, AirFlow
 
 ## Stretch Goals
 Allow user to search for keywords or tags using ElasticSearch.
+
+## Discovering Topics in a Corpus
+
+One of the more widely used statistical methods for determing the important
+concepts in a set of documents is called latent dirichlet allocation (LDA).
+SparkMLib has an implementation of LDA that is able to use two different types
+of optimization algorithms: expectation-maximization (EM) and online variational
+Bayes (online).
+
+[Example LDA gist](https://gist.github.com/jkbradley/ab8ae22a8282b2c8ce33)
+[Spark LDA Doc](http://spark.apache.org/docs/2.1.2/api/java/org/apache/spark/mllib/clustering/LDA.html)
+[Blog about LDA implementation using GraphX](https://databricks.com/blog/2015/03/25/topic-modeling-with-lda-mllib-meets-graphx.html)
