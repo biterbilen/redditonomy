@@ -9,19 +9,19 @@ from flask import request, session, g, redirect, \
     url_for, render_template, send_from_directory, jsonify
 
 creds = ConfigParser()
-creds.read(os.path.expanduser('~/.aws/dbcreds'))
+creds.read(os.path.expanduser('~/.aws/credentials'))
 
-user = creds.get('db', 'user')
-pwd = creds.get('db', 'password')
-ip = creds.get('db', 'ip')
-port = creds.get('db', 'port')
-table = creds.get('db', 'table')
-db = 'postgresql://{user}:{pwd}@{ip}:{port}/{table}'.format(
+user = config.get('db', 'user')
+pwd = config.get('db', 'password')
+ip = config.get('db', 'ip')
+port = config.get('db', 'port')
+name = config.get('db', 'database')
+db = 'postgresql://{user}:{pwd}@{ip}:{port}/{dbname}'.format(
     user=user,
     pwd=pwd,
     ip=ip,
     port=port,
-    table=table)
+    dbname=dbname)
 
 engine = create_engine(db, echo=True)
 Session = sessionmaker(bind=engine)
