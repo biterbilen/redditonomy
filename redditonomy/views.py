@@ -11,17 +11,17 @@ from flask import request, session, g, redirect, \
 creds = ConfigParser()
 creds.read(os.path.expanduser('~/.aws/credentials'))
 
-user = config.get('db', 'user')
-pwd = config.get('db', 'password')
-ip = config.get('db', 'ip')
-port = config.get('db', 'port')
-name = config.get('db', 'database')
+user = creds.get('db', 'user')
+pwd = creds.get('db', 'password')
+ip = creds.get('db', 'ip')
+port = creds.get('db', 'port')
+name = creds.get('db', 'database')
 db = 'postgresql://{user}:{pwd}@{ip}:{port}/{dbname}'.format(
     user=user,
     pwd=pwd,
     ip=ip,
     port=port,
-    dbname=dbname)
+    dbname=name)
 
 engine = create_engine(db, echo=True)
 Session = sessionmaker(bind=engine)
