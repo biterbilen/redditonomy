@@ -1,19 +1,21 @@
-# Redditonomy
-_A Lambda Architecture Pipeline for Developing Taxonomies_
+# /r/edditonomy
+_a spark.ml architecture for developing taxonomies_
 
-## Purpose
+## Business Case
 According to Alexa.com, Reddit is the 17th most active website globally. Given
 Reddit's (sub)community-based structure, there are interesting patterns of
-behavior that emerge in each individual community. Being able to automatically
-extract topics from these communities is highly desirable in order to both
-understand and target
+behavior that emerge in each individual community. 
 
-A _taxonomy_ represents the underlying structure or themes within a body of
-text. This structure can be obtained by feeding tokenized raw text into a
-machine learning model such as WordNet that is able to classify tokens into
-particular categories.
+The underlying structure or themes within a body of text is called a _taxonomy_.
+This structure can be obtained by feeding tokenized raw text into a machine
+learning model such as latent dirichlet allocation (LDA) that is able to
+classify tokens into particular categories.
 
-Redditonomy is a full-stack application that allows a user to find popular
+The main value in such a platform is being able to automatically extract topics
+from these communities yielding highly desirable targeting abilities for ads and
+a deeper understanding of specific verticals.
+
+/r/edditonomy is a full-stack application that allows a user to find popular
 subreddits and look at the main themes or taxonomies that emerge in those
 subcultures as a function of time.
 
@@ -43,25 +45,19 @@ author_flair_text | str
 subreddit | str
 name | str
 
-- ~100GB of comments for batch model processing
-- Simulated stream of ~500 comments per second (2011 rate)
+- 0.9TB of comments for batch model processing
 
 ## Relevant Technologies and Concepts
-S3, Kafka, Spark, Spark-streaming, Cassandra, Machine-learning, WordNet, AirFlow
+S3, Spark, SparkML, PostgreSQL, Machine-learning, AirFlow, Redis
 
 ## Proposed Architecture 
-- Raw bz2 sections of yearly data stored on S3.
-- Kafka-python will emulate a stream of producers
-- Kafka will ingest the data and produce subreddit topics
-- Spark-streaming will ingest the simulated streaming data
-- HDFS will be used to store longer-term data
-- Spark will batch process longer-term data
-- Cassandra will store analytical data
+- Raw sections of yearly data stored on S3.
+- Spark will batch ingest the comment data and store preprocessed results in PostgreSQL
+- Batch SparkML jobs will run builds for weekly data and store results in PostgresQL 
+- Redis cache will sit on top of PostgreSQL database to limit direct db interaction
+- Batch jobs will be mediated by AirFlow
 - Flask will query and present the data
 <img src="./img/architecture.png" width="400px"/>
-
-## Stretch Goals
-Allow user to search for keywords or tags using ElasticSearch.
 
 ## Discovering Topics in a Corpus
 
@@ -70,7 +66,3 @@ concepts in a set of documents is called latent dirichlet allocation (LDA).
 SparkMLib has an implementation of LDA that is able to use two different types
 of optimization algorithms: expectation-maximization (EM) and online variational
 Bayes (online).
-
-[Example LDA gist](https://gist.github.com/jkbradley/ab8ae22a8282b2c8ce33)
-[Spark LDA Doc](http://spark.apache.org/docs/2.1.2/api/java/org/apache/spark/mllib/clustering/LDA.html)
-[Blog about LDA implementation using GraphX](https://databricks.com/blog/2015/03/25/topic-modeling-with-lda-mllib-meets-graphx.html)
