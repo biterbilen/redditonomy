@@ -5,11 +5,12 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="{{ url_for('static', filename='mui.min.css') }}" rel="stylesheet"/>
-    <link href="{{ url_for('static', filename='rangeslider.min.css') }}" rel="stylesheet"/>
     <script src="{{ url_for('static', filename='jquery.slim.min.js') }}"></script>
     <script src="{{ url_for('static', filename='mui.min.js') }}"></script>
     <script src="{{ url_for('static', filename='rangeslider.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='mui.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='rangeslider.min.css') }}" rel="stylesheet"/>
 </head>
 
 <body>
@@ -40,7 +41,7 @@
                 <div class="mui-panel" style="padding: 50px;">
                     <h2>choose a subreddit</h2>
                     <div class="mui-dropdown">
-                        <button class="mui-btn mui-btn--primary" data-mui-toggle="dropdown">
+                        <button id='subreddit-selector' class="mui-btn mui-btn--primary" data-mui-toggle="dropdown">
                             subreddits
                             <span class="mui-caret"></span>
                         </button>
@@ -52,13 +53,9 @@
                         </ul>
                     </div>
                     <h2>choose a daterange</h2>
-                    <input
-                        type="range"
-                        min="10"                    // default 0
-                        max="1000"                  // default 100
-                        step="10"                   // default 1
-                        value="300"                 // default min + (max-min)/2
-                        >
+                    <div class="rangeslider-wrap">
+                        <input type="range" min="150" max="210" step="1" labels="150, 160, 170, 180, 190, 200, 210">
+                    </div>
                 </div>
             </div>
 
@@ -69,7 +66,7 @@
                             <h2>redditonomy for <div class="mui--text-accent-secondary">{{ data['subreddit'] }}</div></h2>
                         </div>
                     </div>
-                    <table class="mui-table mui-table--bordered">
+                    <table id="taxonomy" class="mui-table mui-table--bordered">
                         <thead>
                             <tr>
                                 <th>term</th>
@@ -98,23 +95,66 @@
 </body>
 
 <script>
-$('input[type="range"]').rangeslider({
-   // Deactivate the feature detection
-   polyfill: false,
-   // Callback function
-   onInit: function() {
-       valueOutput(this.$element[0]);
-   },
-   // Callback function
-   onSlide: function(position, value) {
-       console.log('onSlide');
-       console.log('position: ' + position, 'value: ' + value);
-   },
-   // Callback function
-   onSlideEnd: function(position, value) {
-       console.log('onSlideEnd');
-       console.log('position: ' + position, 'value: ' + value);
-   }
+ $('input[type="range"]').rangeslider({
+  // Feature detection the default is `true`.
+    // Set this to `false` if you want to use
+    // the polyfill also in Browsers which support
+    // the native <input type="range"> element.
+    polyfill: false,
+
+    // Default CSS classes
+    rangeClass: 'rangeslider',
+    disabledClass: 'rangeslider--disabled',
+    horizontalClass: 'rangeslider--horizontal',
+    fillClass: 'rangeslider__fill',
+    handleClass: 'rangeslider__handle',
+
+    // Callback function
+    onInit: function() {
+      $rangeEl = this.$range;
+      // add value label to handle
+      var $handle = $rangeEl.find('.rangeslider__handle');
+      var handleValue = '<div class="rangeslider__handle__value">' + this.value + '</div>';
+      $handle.append(handleValue);
+      
+      // get range index labels 
+      var rangeLabels = this.$element.attr('labels');
+      rangeLabels = rangeLabels.split(', ');
+      
+      // add labels
+      $rangeEl.append('<div class="rangeslider__labels"></div>');
+      $(rangeLabels).each(function(index, value) {
+        $rangeEl.find('.rangeslider__labels').append('<span class="rangeslider__labels__label">' + value + '</span>');
+      })
+    },
+
+    // Callback function
+    onSlide: function(position, value) {
+      var $handle = this.$range.find('.rangeslider__handle__value');
+      $handle.text(this.value);
+    },
+
+    // Callback function
+     onSlideEnd: function(position, value) {
+         var results = [[['repub', '0.03'], ['demo', '0.02']],
+                        [['obama', '0.03'], ['trump', '0.02']],
+                        [['election', '0.04'], ['highlights', '0.01']]];
+         $('#taxonomy tbody').empty();
+         for (var j = 0; j < results.length; j++) {
+            for (var i = 0; i < results[j].length; i++) {
+                $('#taxonomy tbody')
+                    .append($('<tr>')
+                        .append($('<td>').text(results[j][i][0]))
+                        .append($('<td>').text(results[j][i][1]))
+                );
+            }
+         }
+     }
 });
+$('#subreddit-selector').dropdown();
+$('#subreddit-selector').on('select', function() {
+     console.log(this.value);
+});
+
 </script>
 </html>

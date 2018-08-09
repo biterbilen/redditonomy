@@ -42,7 +42,7 @@ class Results(Base):
 Base.metadata.create_all(engine)
 sess = Session()
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def home():
     query = sess.query(Results).all()
 
