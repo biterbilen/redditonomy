@@ -41,12 +41,12 @@
                 <div class="mui-panel" style="padding: 50px;">
                     <h2>choose a subreddit</h2>
                     <div class="mui-dropdown">
-                        <button id='subreddit-selector' class="mui-btn mui-btn--primary" data-mui-toggle="dropdown">
+                        <button id='subreddit-selector' class="mui-btn mui-btn--primary" data-toggle="dropdown">
                             subreddits
                             <span class="mui-caret"></span>
                         </button>
                         {% set subreddits = ['/r/politics', '/r/worldnews', '/r/nba'] %}
-                        <ul class="mui-dropdown__menu">
+                        <ul class="dropdown_menu">
                             {% for subreddit in subreddits %}
                             <li><a href="#">{{ subreddit }}</a></li>
                             {% endfor %}
@@ -54,7 +54,7 @@
                     </div>
                     <h2>choose a daterange</h2>
                     <div class="rangeslider-wrap">
-                        <input type="range" min="150" max="210" step="1" labels="150, 160, 170, 180, 190, 200, 210">
+                        <input type="range" min="0" max="5" step="1" labels="0, 1, 2, 3, 4, 5">
                     </div>
                 </div>
             </div>
@@ -62,8 +62,12 @@
             <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
-                        <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
-                            <h2>redditonomy for <div class="mui--text-accent-secondary">{{ data['subreddit'] }}</div></h2>
+                        <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
+                            <h2>redditonomy for
+                                <div class="mui--text-accent-secondary">
+                                    {{ data['subreddit'] }}<span id="date"></span>
+                                </div>
+                            </h2>
                         </div>
                     </div>
                     <table id="taxonomy" class="mui-table mui-table--bordered">
@@ -84,9 +88,9 @@
                     </table>
                     <hl/>
                     <div class="mui-panel-footer">
-                        Vocab size: {{ data['vocab_size'] }}
+                        Vocab size: <span id='vocab'>{{ data['vocab_size'] }}</span>
                         <br/>
-                        Num docs: {{ data['corpus_size'] }}
+                        Num docs: <span id='documents'>{{ data['corpus_size'] }}</span>
                     </div>
                 </div>
             </div>
@@ -95,6 +99,7 @@
 </body>
 
 <script>
+ $('#subreddit-selector').dropdown();
  $('input[type="range"]').rangeslider({
   // Feature detection the default is `true`.
     // Set this to `false` if you want to use
@@ -102,7 +107,7 @@
     // the native <input type="range"> element.
     polyfill: false,
 
-    // Default CSS classes
+// Default CSS classes
     rangeClass: 'rangeslider',
     disabledClass: 'rangeslider--disabled',
     horizontalClass: 'rangeslider--horizontal',
@@ -131,30 +136,32 @@
     // Callback function
     onSlide: function(position, value) {
       var $handle = this.$range.find('.rangeslider__handle__value');
-      $handle.text(this.value);
+      var results = [
+          {date: '01-01-2008', vocabsize: 10000, numdocs: 100, scores: [['repub', '0.03'], ['demo', '0.02']]},
+          {date: '01-08-2008', vocabsize: 20000, numdocs: 1000, scores: [['repub', '0.03'], ['demo', '0.02']]},
+          {date: '01-15-2008', vocabsize: 30000, numdocs: 10000, scores: [['repub', '0.03'], ['demo', '0.02']]},
+          {date: '01-21-2008', vocabsize: 40000, numdocs: 100000, scores: [['repub', '0.03'], ['demo', '0.02']]},
+          {date: '01-28-2008', vocabsize: 50000, numdocs: 1000000, scores: [['repub', '0.03'], ['demo', '0.02']]},
+      ];
+      var thisEntry = results[this.value];
+      $('#date').text(', ' + thisEntry['date']);
+
+      $('#taxonomy tbody').empty();
+      for (var i = 0; i < thisEntry['scores'].length; i++) {
+          $('#taxonomy tbody')
+              .append($('<tr>')
+                  .append($('<td>').text(thisEntry['scores'][i][0]))
+                  .append($('<td>').text(thisEntry['scores'][i][1]))
+          );
+      }
+
+      $('#vocab').text(thisEntry['vocabsize']);
+      $('#documents').text(thisEntry['numdocs']);
     },
 
     // Callback function
      onSlideEnd: function(position, value) {
-         var results = [[['repub', '0.03'], ['demo', '0.02']],
-                        [['obama', '0.03'], ['trump', '0.02']],
-                        [['election', '0.04'], ['highlights', '0.01']]];
-         $('#taxonomy tbody').empty();
-         for (var j = 0; j < results.length; j++) {
-            for (var i = 0; i < results[j].length; i++) {
-                $('#taxonomy tbody')
-                    .append($('<tr>')
-                        .append($('<td>').text(results[j][i][0]))
-                        .append($('<td>').text(results[j][i][1]))
-                );
-            }
-         }
      }
 });
-$('#subreddit-selector').dropdown();
-$('#subreddit-selector').on('select', function() {
-     console.log(this.value);
-});
-
 </script>
 </html>
