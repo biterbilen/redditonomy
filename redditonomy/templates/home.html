@@ -22,6 +22,7 @@
             </tr>
         </table>
     </div>
+
     <div class="mui-container" style="margin: 50px auto; margin-bottom: 0;">
         <div class="mui-panel" style="padding: 50px;">
             <div class="mui--text-headline">
@@ -32,33 +33,26 @@
             </div>
         </div>
     </div>
-    {% set panel = True %}
-    {% if panel %}
+
+    {% set subreddits = ['/r/politics', '/r/worldnews', '/r/nba'] %}
     <div class="mui-container" style="margin: 50px auto; margin-top: 0;">
         <div class="mui-row">
             <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
                         <div class="mui-col-sm-8 mui-col-md-8 mui-col-lg-8">
-                            <h2>choose a subreddit</h2>
-                            <div class="mui-dropdown">
-                                <button id='subreddit-selector' class="mui-btn mui-btn--primary" data-toggle="dropdown">
-                                    subreddits
-                                    <span class="mui-caret"></span>
-                                </button>
-                                {% set subreddits = ['/r/politics', '/r/worldnews', '/r/nba'] %}
-                                <ul class="dropdown_menu">
-                                    {% for subreddit in subreddits %}
-                                    <li><a href="#">{{ subreddit }}</a></li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
+                            <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 24px; text-transform: lowercase; width: 300px;">
+                                <option value=None>select subreddit</option>
+                                {% for subreddit in subreddits %}
+                                <option>{{ subreddit }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div id='status' class="mui-col-sm-4 mui-col-md-4 mui-col-lg-4">
-                            <h2>
-                                <span id="date"></span>
-                                <br/>
+                        <div class="mui-col-sm-4 mui-col-md-4 mui-col-lg-4">
+                            <h2 id="info" class="mui--text-accent-secondary">
                                 <span id="subreddit"></span>
+                                <br/>
+                                <span id="date"></span>
                             </h2>
                         </div>
                     </div>
@@ -66,7 +60,7 @@
                         <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
                             <h2>choose a daterange</h2>
                             <div id="rangeslider-wrapper" class="rangeslider-wrap">
-                                <input type="range" min="0" max="5" step="1" labels="0, 1, 2, 3, 4, 5" disabled>
+                                <input type="range" min="0" max="0" disabled>
                             </div>
                         </div>
                     </div>
@@ -133,48 +127,54 @@
                     </div>
                 </div>
             </div>
+        </div>
     </div>
-    {% endif %}
 </body>
 
 <script>
  $(document).ready(function() {
     initialize_slider();
 
-    $('#subreddit-selector').on('click', function() {
-        var subreddit = 'politics';
-        $(document).data('subreddit', subreddit);
+    $('#subreddit-selector').on('change', function() {
+        if (this.value) {
+            var subreddit = this.value.split('/')[2];
 
-        $.ajax({
-            url: "http://127.0.0.1:5001/q/"+subreddit,
-            dataType: 'json',
-            async: false,
-            success: function(data) {
-                $(document).data('results', data);
+            $(document).data('subreddit', subreddit);
+
+            $.ajax({
+                url: "http://127.0.0.1:5001/q/"+subreddit,
+                dataType: 'json',
+                async: false,
+                success: function(data) {
+                    $(document).data('results', data);
+                }
+            });
+
+            results = $(document).data('results');
+            subreddit = $(document).data('subreddit');
+            $('#subreddit').text('/r/' + subreddit);
+
+            $('#date').text(results[0]['date']);
+            $('#taxonomy tbody').empty();
+            for (var i = 0; i < results[0]['results'].length; i++) {
+                $('#taxonomy tbody')
+                    .append($('<tr>')
+                        .append($('<td>').text(results[0]['results'][i][0]))
+                        .append($('<td>').text(results[0]['results'][i][1]))
+                );
             }
-        });
-        
-        results = $(document).data('results');
-        subreddit = $(document).data('subreddit');
-        $('#subreddit').text('/r/' + subreddit);
 
-        $('#date').text(results[0]['date']);
-        $('#taxonomy tbody').empty();
-        for (var i = 0; i < results[0]['results'].length; i++) {
-            $('#taxonomy tbody')
-                .append($('<tr>')
-                    .append($('<td>').text(results[0]['results'][i][0]))
-                    .append($('<td>').text(results[0]['results'][i][1]))
-            );
+            $('#vocab').text('Vocab size: ' + results[0]['vocabsize']);
+            $('#documents').text('Number of documents: ' + results[0]['numdocs']);
+
+            var numweeks = results.length - 1;
+            $('#rangeslider-wrapper').empty()
+                                    .html('<input type="range" value="0" min="0" max="' + numweeks + '" step="1">');
+            initialize_slider();
+        } else {
+            $('#subreddit').text();
+            $('#date').text();
         }
-
-        $('#vocab').text('Vocab size: ' + results[0]['vocabsize']);
-        $('#documents').text('Number of documents: ' + results[0]['numdocs']);
-
-        var numweeks = results.length - 1;
-        $('#rangeslider-wrapper').empty()
-                                .html('<input type="range" min="0" max="' + numweeks + '" step="1">');
-        initialize_slider();
     });
 });
 
@@ -194,23 +194,7 @@ function initialize_slider() {
         handleClass: 'rangeslider__handle',
 
         // Callback function
-        onInit: function() {
-        $rangeEl = this.$range;
-        // add value label to handle
-        var $handle = $rangeEl.find('.rangeslider__handle');
-    //      var handleValue = '<div class="rangeslider__handle__value">' + this.value + '</div>';
-    //      $handle.append(handleValue);
-
-    //      // get range index labels 
-    //      var rangeLabels = this.$element.attr('labels');
-    //      rangeLabels = rangeLabels.split(', ');
-    //      
-    //      // add labels
-    //      $rangeEl.append('<div class="rangeslider__labels"></div>');
-    //      $(rangeLabels).each(function(index, value) {
-    //        $rangeEl.find('.rangeslider__labels').append('<span class="rangeslider__labels__label">' + value + '</span>');
-    //      })
-        },
+        onInit: function() {},
 
         // Callback function
         onSlide: function(position, value) {
