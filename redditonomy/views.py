@@ -4,6 +4,7 @@ from redditonomy import app
 from models import Redis, Results, Session
 from flask import request, session, g, redirect, \
     url_for, render_template, send_from_directory, jsonify
+from sqlalchemy import distinct
 
 ONE_DAY = 24 * 3600
 
@@ -12,8 +13,9 @@ cache = Redis()
 
 @app.route('/', methods=['GET'])
 def home():
-    #query = sess.query(Results).all()
-    subreddits = ['AskReddit', 'worldnews', 'nba']
+    query = sess.query(Results).distinct(Results.subreddit).all()
+    subreddits = [q.subreddit for q in query]
+
     return render_template('home.html', subreddits=subreddits)
 
 @app.route('/q/<subreddit>', methods=['GET', 'POST'])

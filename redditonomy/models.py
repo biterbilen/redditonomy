@@ -9,6 +9,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from redis import StrictRedis, ConnectionError
 
+creds = ConfigParser()
+creds.read(os.path.expanduser('~/.aws/credentials'))
+
+user = creds.get('db', 'user')
+pwd = creds.get('db', 'password')
+ip = creds.get('db', 'ip')
+port = creds.get('db', 'port')
+name = creds.get('db', 'database')
+db = 'postgresql://{user}:{pwd}@{ip}:{port}/{dbname}'.format(
+    user=user, pwd=pwd, ip=ip, port=port, dbname=name)
+
 class Redis(StrictRedis):
     REDIS_CREDENTIAL_FILE = os.path.expanduser('~/.aws/credentials')
     redis_config = ConfigParser()
@@ -51,17 +62,6 @@ class Redis(StrictRedis):
             super(Redis, self).set(key, compressed, ex=ex)
         except ConnectionError:
             pass
-
-creds = ConfigParser()
-creds.read(os.path.expanduser('~/.aws/credentials'))
-
-user = creds.get('db', 'user')
-pwd = creds.get('db', 'password')
-ip = creds.get('db', 'ip')
-port = creds.get('db', 'port')
-name = creds.get('db', 'database')
-db = 'postgresql://{user}:{pwd}@{ip}:{port}/{dbname}'.format(
-    user=user, pwd=pwd, ip=ip, port=port, dbname=name)
 
 engine = create_engine(db, echo=True)
 Session = sessionmaker(bind=engine)
