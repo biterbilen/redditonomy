@@ -1,7 +1,7 @@
 import os
 import json
 from redditonomy import app
-from models import Redis, Results, sess
+from models import Redis, Results, Session
 from flask import request, session, g, redirect, \
     url_for, render_template, send_from_directory, jsonify
 

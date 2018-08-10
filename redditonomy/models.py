@@ -1,4 +1,5 @@
 import os
+import json
 import zlib
 import hashlib
 from ConfigParser import ConfigParser
