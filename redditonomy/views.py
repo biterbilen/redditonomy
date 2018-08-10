@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from redditonomy import app
 from models import Redis, Results, Session
@@ -6,15 +7,21 @@ from flask import request, session, g, redirect, \
     url_for, render_template, send_from_directory, jsonify
 from sqlalchemy import distinct
 
-ONE_DAY = 24 * 3600
+ONE_HOUR = 3600
+ONE_DAY = 24 * ONE_HOUR
 
 sess = Session()
 cache = Redis()
 
 @app.route('/', methods=['GET'])
 def home():
-    query = sess.query(Results).distinct(Results.subreddit).all()
-    subreddits = [q.subreddit for q in query]
+    key = cache.make_key('subreddit_list')
+    value = cache.get(key)
+
+    if not value:
+        query = sess.query(Results).distinct(Results.subreddit).all()
+        subreddits = [q.subreddit for q in query]
+        cache.set(key, subreddits, ex=ONE_HOUR)
 
     return render_template('home.html', subreddits=subreddits)
 
@@ -36,7 +43,6 @@ def query(subreddit):
     value = cache.get(key)
 
     if not value:
-        results = [q.results for q in query]
+        results = [json.loads(str(re.sub('\'', '\"', q.results))) for q in query]
         cache.set(key, results, ex=ONE_DAY)
-    raise
     return jsonify(results)

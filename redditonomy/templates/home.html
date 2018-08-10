@@ -8,6 +8,7 @@
     <script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='mui.min.js') }}"></script>
     <script src="{{ url_for('static', filename='rangeslider.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='taxonomy.js') }}"></script>
     <link href="{{ url_for('static', filename='mui.min.css') }}" rel="stylesheet"/>
     <link href="{{ url_for('static', filename='rangeslider.min.css') }}" rel="stylesheet"/>
 </head>
@@ -26,10 +27,10 @@
     <div class="mui-container" style="margin: 50px auto; margin-bottom: 0;">
         <div class="mui-panel" style="padding: 50px;">
             <div class="mui--text-headline">
-                /r/edditonomy is a taxonomy builder for subreddit communities.
+                /r/edditonomy is a taxonomy builder for subreddit communities
             </div>
             <div class="mui--text-subhead">
-                it uses latent dirichlet allocation for topic classification.
+                it uses latent dirichlet allocation for topic classification
             </div>
         </div>
     </div>
@@ -39,7 +40,7 @@
             <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
-                        <div class="mui-col-sm-8 mui-col-md-8 mui-col-lg-8">
+                        <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
                             <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 24px; width: 400px; padding: 20px;">
                                 <option value=None>select a subreddit</option>
                                 {% for subreddit in subreddits %}
@@ -47,8 +48,8 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="mui-col-sm-4 mui-col-md-4 mui-col-lg-4">
-                            <h1 id="info">
+                        <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
+                            <h1 id="info" style="margin-top: 10px;">
                                 <span id="date"></span>
                             </h1>
                         </div>
@@ -127,98 +128,4 @@
         </div>
     </div>
 </body>
-
-<script>
- $(document).ready(function() {
-    initialize_slider();
-
-    $('#subreddit-selector').on('change', function() {
-        if (this.value) {
-            var subreddit = this.value;
-
-            $(document).data('subreddit', subreddit);
-
-            var url = "http://127.0.0.1:5001/q/"+subreddit;
-            console.log(url);
-            $.ajax({
-                url: url,
-                dataType: 'json',
-                async: false,
-                success: function(data) {
-                    console.log(data);
-                    $(document).data('results', data);
-                }
-            });
-
-            results = $(document).data('results');
-            subreddit = $(document).data('subreddit');
-            $('#subreddit').text('/r/' + subreddit);
-
-            console.log(results);
-            $('#date').text(results[0]['date']);
-            $('#taxonomy tbody').empty();
-            for (var i = 0; i < results[0]['results'].length; i++) {
-                $('#taxonomy tbody')
-                    .append($('<tr>')
-                        .append($('<td>').text(results[0]['results'][i][0]))
-                        .append($('<td>').text(results[0]['results'][i][1]))
-                );
-            }
-
-            $('#vocab').text('Vocab size: ' + results[0]['vocabsize']);
-            $('#documents').text('Number of documents: ' + results[0]['numdocs']);
-
-            var numweeks = results.length - 1;
-            $('#rangeslider-wrapper').empty()
-                                    .html('<input type="range" value="0" min="0" max="' + numweeks + '" step="1">');
-            initialize_slider();
-        } else {
-            $('#subreddit').text();
-            $('#date').text();
-        }
-    });
-});
-
-function initialize_slider() {
-    $('input[type="range"]').rangeslider({
-    // Feature detection the default is `true`.
-        // Set this to `false` if you want to use
-        // the polyfill also in Browsers which support
-        // the native <input type="range"> element.
-        polyfill: false,
-
-    // Default CSS classes
-        rangeClass: 'rangeslider',
-        disabledClass: 'rangeslider--disabled',
-        horizontalClass: 'rangeslider--horizontal',
-        fillClass: 'rangeslider__fill',
-        handleClass: 'rangeslider__handle',
-
-        // Callback function
-        onInit: function() {},
-
-        // Callback function
-        onSlide: function(position, value) {
-            var $handle = this.$range.find('.rangeslider__handle__value');
-            results = $(document).data('results');
-            var thisEntry = results[this.value];
-    
-            $('#date').text(thisEntry['date']);
-            $('#taxonomy tbody').empty();
-            for (var i = 0; i < thisEntry['results'].length; i++) {
-                $('#taxonomy tbody')
-                    .append($('<tr>')
-                        .append($('<td>').text(thisEntry['results'][i][0]))
-                        .append($('<td>').text(thisEntry['results'][i][1]))
-                );
-            }
-            $('#vocab').text('Vocab size: ' + thisEntry['vocab_size']);
-            $('#documents').text('Number of documents: ' + thisEntry['corpus_size']);
-        },
-
-        // Callback function
-        onSlideEnd: function(position, value) {}
-    });
-}
-</script>
 </html>
