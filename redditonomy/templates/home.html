@@ -22,7 +22,7 @@
             </tr>
         </table>
     </div>
-    <div class="mui-container" style="margin: 50px auto;">
+    <div class="mui-container" style="margin: 50px auto; margin-bottom: 0;">
         <div class="mui-panel" style="padding: 50px;">
             <div class="mui--text-headline">
                 /r/edditonomy is a taxonomy builder for subreddit communities.
@@ -34,37 +34,83 @@
     </div>
     {% set panel = True %}
     {% if panel %}
-    <div class="mui-container" style="margin: 50px auto;">
+    <div class="mui-container" style="margin: 50px auto; margin-top: 0;">
         <div class="mui-row">
-            <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
+            <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
                 <div class="mui-panel" style="padding: 50px;">
-                    <h2>choose a subreddit</h2>
-                    <div class="mui-dropdown">
-                        <button id='subreddit-selector' class="mui-btn mui-btn--primary" data-toggle="dropdown">
-                            subreddits
-                            <span class="mui-caret"></span>
-                        </button>
-                        {% set subreddits = ['/r/politics', '/r/worldnews', '/r/nba'] %}
-                        <ul class="dropdown_menu">
-                            {% for subreddit in subreddits %}
-                            <li><a href="#">{{ subreddit }}</a></li>
-                            {% endfor %}
-                        </ul>
+                    <div class="mui-row">
+                        <div class="mui-col-sm-8 mui-col-md-8 mui-col-lg-8">
+                            <h2>choose a subreddit</h2>
+                            <div class="mui-dropdown">
+                                <button id='subreddit-selector' class="mui-btn mui-btn--primary" data-toggle="dropdown">
+                                    subreddits
+                                    <span class="mui-caret"></span>
+                                </button>
+                                {% set subreddits = ['/r/politics', '/r/worldnews', '/r/nba'] %}
+                                <ul class="dropdown_menu">
+                                    {% for subreddit in subreddits %}
+                                    <li><a href="#">{{ subreddit }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div id='status' class="mui-col-sm-4 mui-col-md-4 mui-col-lg-4">
+                            <h2>
+                                <span id="date"></span>
+                                <br/>
+                                <span id="subreddit"></span>
+                            </h2>
+                        </div>
                     </div>
-                    <h2>choose a daterange</h2>
-                    <div id="rangeslider-wrapper" class="rangeslider-wrap">
-                        <input type="range" min="0" max="5" step="1" labels="0, 1, 2, 3, 4, 5" disabled>
+                    <div class="mui-row">
+                        <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
+                            <h2>choose a daterange</h2>
+                            <div id="rangeslider-wrapper" class="rangeslider-wrap">
+                                <input type="range" min="0" max="5" step="1" labels="0, 1, 2, 3, 4, 5" disabled>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
+        <div class="mui-row">
             <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
                         <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
-                            <h2>redditonomy for
+                            <h2>LDA - Expectation Maximization
                                 <div id='info' class="mui--text-accent-secondary">
-                                    <span id="subreddit"></span><span id="date"></span>
+                                    <span id="lda-em"></span>
+                                </div>
+                            </h2>
+                        </div>
+                    </div>
+                    <table id="taxonomy" class="mui-table mui-table--bordered">
+                        <thead>
+                            <tr>
+                                <th>term</th>
+                                <th>relevancy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <hl/>
+                    <div class="mui-panel-footer">
+                        <span id="vocab"></span>
+                        <br/>
+                        <span id="documents"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
+                <div class="mui-panel" style="padding: 50px;">
+                    <div class="mui-row">
+                        <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
+                            <h2>LDA - Online
+                                <div id='info' class="mui--text-accent-secondary">
+                                    <span id="lda-em"></span>
                                 </div>
                             </h2>
                         </div>
@@ -112,13 +158,13 @@
         subreddit = $(document).data('subreddit');
         $('#subreddit').text('/r/' + subreddit);
 
-        $('#date').text(', ' + results[0]['week']);
+        $('#date').text(results[0]['date']);
         $('#taxonomy tbody').empty();
-        for (var i = 0; i < results[0]['scores'].length; i++) {
+        for (var i = 0; i < results[0]['results'].length; i++) {
             $('#taxonomy tbody')
                 .append($('<tr>')
-                    .append($('<td>').text(results[0]['scores'][i][0]))
-                    .append($('<td>').text(results[0]['scores'][i][1]))
+                    .append($('<td>').text(results[0]['results'][i][0]))
+                    .append($('<td>').text(results[0]['results'][i][1]))
             );
         }
 
@@ -172,17 +218,17 @@ function initialize_slider() {
             results = $(document).data('results');
             var thisEntry = results[this.value];
     
-            $('#date').text(', ' + thisEntry['week']);
+            $('#date').text(thisEntry['date']);
             $('#taxonomy tbody').empty();
-            for (var i = 0; i < thisEntry['scores'].length; i++) {
+            for (var i = 0; i < thisEntry['results'].length; i++) {
                 $('#taxonomy tbody')
                     .append($('<tr>')
-                        .append($('<td>').text(thisEntry['scores'][i][0]))
-                        .append($('<td>').text(thisEntry['scores'][i][1]))
+                        .append($('<td>').text(thisEntry['results'][i][0]))
+                        .append($('<td>').text(thisEntry['results'][i][1]))
                 );
             }
-            $('#vocab').text('Vocab size: ' + thisEntry['vocabsize']);
-            $('#documents').text('Number of documents: ' + thisEntry['numdocs']);
+            $('#vocab').text('Vocab size: ' + thisEntry['vocab_size']);
+            $('#documents').text('Number of documents: ' + thisEntry['corpus_size']);
         },
 
         // Callback function

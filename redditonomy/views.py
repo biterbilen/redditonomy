@@ -17,15 +17,12 @@ ip = creds.get('db', 'ip')
 port = creds.get('db', 'port')
 name = creds.get('db', 'database')
 db = 'postgresql://{user}:{pwd}@{ip}:{port}/{dbname}'.format(
-    user=user,
-    pwd=pwd,
-    ip=ip,
-    port=port,
-    dbname=name)
+    user=user, pwd=pwd, ip=ip, port=port, dbname=name)
 
 engine = create_engine(db, echo=True)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
+
 
 class Results(Base):
     __tablename__ = 'results'
@@ -39,11 +36,25 @@ class Results(Base):
     def __init__(self, subreddit, date, results):
         self.data = results
 
+
 Base.metadata.create_all(engine)
 sess = Session()
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    query = sess.query(Results).all()
 
-    return render_template('home.html', data=query[0].results)
+@app.route('/', methods=['GET'])
+def home():
+    return render_template('home.html')
+
+@app.route('/q/<subreddit>', methods=['GET', 'POST'])
+def query(subreddit):
+    """
+    data looks like this
+    results = [{
+            'date': '01-{}-2008'.format(i),
+            'vocab_size': i,
+            'corpus_size': 100,
+            'results': [['repub', round(i*0.01, 2)]]*5
+        } for i in range(500)]
+    """
+    query = sess.query(Results).all()
+    return jsonify([q.results for q in query])
