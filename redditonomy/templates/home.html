@@ -40,19 +40,17 @@
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
                         <div class="mui-col-sm-8 mui-col-md-8 mui-col-lg-8">
-                            <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 24px; text-transform: lowercase; width: 300px; padding: 20px;">
+                            <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 24px; width: 400px; padding: 20px;">
                                 <option value=None>select a subreddit</option>
                                 {% for subreddit in subreddits %}
-                                <option>{{ subreddit }}</option>
+                                <option value={{ subreddit }}>/r/{{ subreddit }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="mui-col-sm-4 mui-col-md-4 mui-col-lg-4">
-                            <h2 id="info" class="mui--text-accent-secondary">
-                                <span id="subreddit"></span>
-                                <br/>
+                            <h1 id="info">
                                 <span id="date"></span>
-                            </h2>
+                            </h1>
                         </div>
                     </div>
                     <div class="mui-row">
@@ -72,7 +70,7 @@
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
                         <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
-                            <h2>LDA - Expectation Maximization
+                            <h2>Expectation Maximization
                                 <div id='info' class="mui--text-accent-secondary">
                                     <span id="lda-em"></span>
                                 </div>
@@ -101,7 +99,7 @@
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
                         <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
-                            <h2>LDA - Online
+                            <h2>Online
                                 <div id='info' class="mui--text-accent-secondary">
                                     <span id="lda-em"></span>
                                 </div>
@@ -140,8 +138,10 @@
 
             $(document).data('subreddit', subreddit);
 
+            var url = "http://127.0.0.1:5001/q/"+subreddit;
+            console.log(url);
             $.ajax({
-                url: "http://127.0.0.1:5001/q/"+subreddit,
+                url: url,
                 dataType: 'json',
                 async: false,
                 success: function(data) {
