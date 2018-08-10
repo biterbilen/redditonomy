@@ -5,10 +5,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="{{ url_for('static', filename='jquery.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='mui.min.js') }}"></script>
     <script src="{{ url_for('static', filename='rangeslider.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
     <link href="{{ url_for('static', filename='mui.min.css') }}" rel="stylesheet"/>
     <link href="{{ url_for('static', filename='rangeslider.min.css') }}" rel="stylesheet"/>
 </head>
@@ -53,8 +52,8 @@
                         </ul>
                     </div>
                     <h2>choose a daterange</h2>
-                    <div class="rangeslider-wrap">
-                        <input type="range" min="0" max="5" step="1" labels="0, 1, 2, 3, 4, 5">
+                    <div id="rangeslider-wrapper" class="rangeslider-wrap">
+                        <input type="range" min="0" max="5" step="1" labels="0, 1, 2, 3, 4, 5" disabled>
                     </div>
                 </div>
             </div>
@@ -64,8 +63,8 @@
                     <div class="mui-row">
                         <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
                             <h2>redditonomy for
-                                <div class="mui--text-accent-secondary">
-                                    {{ data['subreddit'] }}<span id="date"></span>
+                                <div id='info' class="mui--text-accent-secondary">
+                                    <span id="subreddit"></span><span id="date"></span>
                                 </div>
                             </h2>
                         </div>
@@ -78,19 +77,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for term in data['results'] %}
-                            <tr>
-                                <td>{{ term[0] }}</td>
-                                <td>{{ term[1] }}</td>
-                            </tr>
-                            {% endfor %}
                         </tbody>
                     </table>
                     <hl/>
                     <div class="mui-panel-footer">
-                        Vocab size: <span id='vocab'>{{ data['vocab_size'] }}</span>
+                        <span id="vocab"></span>
                         <br/>
-                        Num docs: <span id='documents'>{{ data['corpus_size'] }}</span>
+                        <span id="documents"></span>
                     </div>
                 </div>
             </div>
@@ -99,69 +92,102 @@
 </body>
 
 <script>
- $('#subreddit-selector').dropdown();
- $('input[type="range"]').rangeslider({
-  // Feature detection the default is `true`.
-    // Set this to `false` if you want to use
-    // the polyfill also in Browsers which support
-    // the native <input type="range"> element.
-    polyfill: false,
+ $(document).ready(function() {
+    initialize_slider();
 
-// Default CSS classes
-    rangeClass: 'rangeslider',
-    disabledClass: 'rangeslider--disabled',
-    horizontalClass: 'rangeslider--horizontal',
-    fillClass: 'rangeslider__fill',
-    handleClass: 'rangeslider__handle',
+    $('#subreddit-selector').on('click', function() {
+        var subreddit = 'politics';
+        $(document).data('subreddit', subreddit);
 
-    // Callback function
-    onInit: function() {
-      $rangeEl = this.$range;
-      // add value label to handle
-      var $handle = $rangeEl.find('.rangeslider__handle');
-      var handleValue = '<div class="rangeslider__handle__value">' + this.value + '</div>';
-      $handle.append(handleValue);
-      
-      // get range index labels 
-      var rangeLabels = this.$element.attr('labels');
-      rangeLabels = rangeLabels.split(', ');
-      
-      // add labels
-      $rangeEl.append('<div class="rangeslider__labels"></div>');
-      $(rangeLabels).each(function(index, value) {
-        $rangeEl.find('.rangeslider__labels').append('<span class="rangeslider__labels__label">' + value + '</span>');
-      })
-    },
+        $.ajax({
+            url: "http://127.0.0.1:5001/q/"+subreddit,
+            dataType: 'json',
+            async: false,
+            success: function(data) {
+                $(document).data('results', data);
+            }
+        });
+        
+        results = $(document).data('results');
+        subreddit = $(document).data('subreddit');
+        $('#subreddit').text('/r/' + subreddit);
 
-    // Callback function
-    onSlide: function(position, value) {
-      var $handle = this.$range.find('.rangeslider__handle__value');
-      var results = [
-          {date: '01-01-2008', vocabsize: 10000, numdocs: 100, scores: [['repub', '0.03'], ['demo', '0.02']]},
-          {date: '01-08-2008', vocabsize: 20000, numdocs: 1000, scores: [['repub', '0.03'], ['demo', '0.02']]},
-          {date: '01-15-2008', vocabsize: 30000, numdocs: 10000, scores: [['repub', '0.03'], ['demo', '0.02']]},
-          {date: '01-21-2008', vocabsize: 40000, numdocs: 100000, scores: [['repub', '0.03'], ['demo', '0.02']]},
-          {date: '01-28-2008', vocabsize: 50000, numdocs: 1000000, scores: [['repub', '0.03'], ['demo', '0.02']]},
-      ];
-      var thisEntry = results[this.value];
-      $('#date').text(', ' + thisEntry['date']);
+        $('#date').text(', ' + results[0]['week']);
+        $('#taxonomy tbody').empty();
+        for (var i = 0; i < results[0]['scores'].length; i++) {
+            $('#taxonomy tbody')
+                .append($('<tr>')
+                    .append($('<td>').text(results[0]['scores'][i][0]))
+                    .append($('<td>').text(results[0]['scores'][i][1]))
+            );
+        }
 
-      $('#taxonomy tbody').empty();
-      for (var i = 0; i < thisEntry['scores'].length; i++) {
-          $('#taxonomy tbody')
-              .append($('<tr>')
-                  .append($('<td>').text(thisEntry['scores'][i][0]))
-                  .append($('<td>').text(thisEntry['scores'][i][1]))
-          );
-      }
+        $('#vocab').text('Vocab size: ' + results[0]['vocabsize']);
+        $('#documents').text('Number of documents: ' + results[0]['numdocs']);
 
-      $('#vocab').text(thisEntry['vocabsize']);
-      $('#documents').text(thisEntry['numdocs']);
-    },
-
-    // Callback function
-     onSlideEnd: function(position, value) {
-     }
+        var numweeks = results.length - 1;
+        $('#rangeslider-wrapper').empty()
+                                .html('<input type="range" min="0" max="' + numweeks + '" step="1">');
+        initialize_slider();
+    });
 });
+
+function initialize_slider() {
+    $('input[type="range"]').rangeslider({
+    // Feature detection the default is `true`.
+        // Set this to `false` if you want to use
+        // the polyfill also in Browsers which support
+        // the native <input type="range"> element.
+        polyfill: false,
+
+    // Default CSS classes
+        rangeClass: 'rangeslider',
+        disabledClass: 'rangeslider--disabled',
+        horizontalClass: 'rangeslider--horizontal',
+        fillClass: 'rangeslider__fill',
+        handleClass: 'rangeslider__handle',
+
+        // Callback function
+        onInit: function() {
+        $rangeEl = this.$range;
+        // add value label to handle
+        var $handle = $rangeEl.find('.rangeslider__handle');
+    //      var handleValue = '<div class="rangeslider__handle__value">' + this.value + '</div>';
+    //      $handle.append(handleValue);
+
+    //      // get range index labels 
+    //      var rangeLabels = this.$element.attr('labels');
+    //      rangeLabels = rangeLabels.split(', ');
+    //      
+    //      // add labels
+    //      $rangeEl.append('<div class="rangeslider__labels"></div>');
+    //      $(rangeLabels).each(function(index, value) {
+    //        $rangeEl.find('.rangeslider__labels').append('<span class="rangeslider__labels__label">' + value + '</span>');
+    //      })
+        },
+
+        // Callback function
+        onSlide: function(position, value) {
+            var $handle = this.$range.find('.rangeslider__handle__value');
+            results = $(document).data('results');
+            var thisEntry = results[this.value];
+    
+            $('#date').text(', ' + thisEntry['week']);
+            $('#taxonomy tbody').empty();
+            for (var i = 0; i < thisEntry['scores'].length; i++) {
+                $('#taxonomy tbody')
+                    .append($('<tr>')
+                        .append($('<td>').text(thisEntry['scores'][i][0]))
+                        .append($('<td>').text(thisEntry['scores'][i][1]))
+                );
+            }
+            $('#vocab').text('Vocab size: ' + thisEntry['vocabsize']);
+            $('#documents').text('Number of documents: ' + thisEntry['numdocs']);
+        },
+
+        // Callback function
+        onSlideEnd: function(position, value) {}
+    });
+}
 </script>
 </html>
