@@ -1,49 +1,20 @@
 import os
-from ConfigParser import ConfigParser
-from sqlalchemy import create_engine, Column, String, Integer, Date
-from sqlalchemy.dialects import postgresql
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import json
 from redditonomy import app
+from models import Redis, Results, sess
 from flask import request, session, g, redirect, \
     url_for, render_template, send_from_directory, jsonify
 
-creds = ConfigParser()
-creds.read(os.path.expanduser('~/.aws/credentials'))
+ONE_DAY = 24 * 3600
 
-user = creds.get('db', 'user')
-pwd = creds.get('db', 'password')
-ip = creds.get('db', 'ip')
-port = creds.get('db', 'port')
-name = creds.get('db', 'database')
-db = 'postgresql://{user}:{pwd}@{ip}:{port}/{dbname}'.format(
-    user=user, pwd=pwd, ip=ip, port=port, dbname=name)
-
-engine = create_engine(db, echo=True)
-Session = sessionmaker(bind=engine)
-Base = declarative_base()
-
-
-class Results(Base):
-    __tablename__ = 'results'
-    extend_existing = True
-
-    id = Column(Integer, primary_key=True)
-    subreddit = Column(String)
-    date = Column(Date)
-    results = Column(postgresql.JSONB())
-
-    def __init__(self, subreddit, date, results):
-        self.data = results
-
-
-Base.metadata.create_all(engine)
 sess = Session()
-
+cache = Redis()
 
 @app.route('/', methods=['GET'])
 def home():
-    return render_template('home.html')
+    #query = sess.query(Results).all()
+    subreddits = ['AskReddit', 'worldnews', 'nba']
+    return render_template('home.html', subreddits=subreddits)
 
 @app.route('/q/<subreddit>', methods=['GET', 'POST'])
 def query(subreddit):
@@ -55,6 +26,15 @@ def query(subreddit):
             'corpus_size': 100,
             'results': [['repub', round(i*0.01, 2)]]*5
         } for i in range(500)]
+    return jsonify(results)
     """
-    query = sess.query(Results).all()
-    return jsonify([q.results for q in query])
+    query = sess.query(Results).filter(Results.subreddit == subreddit).all()
+
+    key = cache.make_key(subreddit)
+    value = cache.get(key)
+
+    if not value:
+        results = [q.results for q in query]
+        cache.set(key, results, ex=ONE_DAY)
+    raise
+    return jsonify(results)
