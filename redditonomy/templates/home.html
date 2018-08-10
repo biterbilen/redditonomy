@@ -29,20 +29,19 @@
                 /r/edditonomy is a taxonomy builder for subreddit communities.
             </div>
             <div class="mui--text-subhead">
-                it uses latent dirichlet allocation to extract the most important features.
+                it uses latent dirichlet allocation for topic classification.
             </div>
         </div>
     </div>
 
-    {% set subreddits = ['/r/politics', '/r/worldnews', '/r/nba'] %}
     <div class="mui-container" style="margin: 50px auto; margin-top: 0;">
         <div class="mui-row">
             <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
                 <div class="mui-panel" style="padding: 50px;">
                     <div class="mui-row">
                         <div class="mui-col-sm-8 mui-col-md-8 mui-col-lg-8">
-                            <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 24px; text-transform: lowercase; width: 300px;">
-                                <option value=None>select subreddit</option>
+                            <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 24px; text-transform: lowercase; width: 300px; padding: 20px;">
+                                <option value=None>select a subreddit</option>
                                 {% for subreddit in subreddits %}
                                 <option>{{ subreddit }}</option>
                                 {% endfor %}
@@ -137,7 +136,7 @@
 
     $('#subreddit-selector').on('change', function() {
         if (this.value) {
-            var subreddit = this.value.split('/')[2];
+            var subreddit = this.value;
 
             $(document).data('subreddit', subreddit);
 
@@ -146,6 +145,7 @@
                 dataType: 'json',
                 async: false,
                 success: function(data) {
+                    console.log(data);
                     $(document).data('results', data);
                 }
             });
@@ -154,6 +154,7 @@
             subreddit = $(document).data('subreddit');
             $('#subreddit').text('/r/' + subreddit);
 
+            console.log(results);
             $('#date').text(results[0]['date']);
             $('#taxonomy tbody').empty();
             for (var i = 0; i < results[0]['results'].length; i++) {
