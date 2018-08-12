@@ -8,6 +8,7 @@
     <script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='mui.min.js') }}"></script>
     <script src="{{ url_for('static', filename='rangeslider.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='Chart.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='taxonomy.js') }}"></script>
     <link href="{{ url_for('static', filename='mui.min.css') }}" rel="stylesheet"/>
     <link href="{{ url_for('static', filename='rangeslider.min.css') }}" rel="stylesheet"/>
@@ -29,7 +30,7 @@
             <div class="mui--text-headline">
                 /r/edditonomy is a taxonomy builder for subreddit communities
             </div>
-            <div class="mui--text-subhead">
+            <div class="mui--text-dark-secondary mui--text-title">
                 it uses latent dirichlet allocation for topic classification
             </div>
         </div>
@@ -124,6 +125,11 @@
                         <span id="documents"></span>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="mui-row">
+            <div class="mui-col-sm-6 mui-col-sm-offset-3">
+                <canvas id="myChart" width="400" height="300"></canvas>
             </div>
         </div>
     </div>
