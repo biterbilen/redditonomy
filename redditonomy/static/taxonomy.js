@@ -45,7 +45,7 @@ function initialize_slider() {
 
 function build_chart(results) {
     $('<div>').addClass(
-        'mui-col-sm-6 mui-col-sm-offset-3'
+        'mui-col-sm-8 mui-col-sm-offset-2'
     ).append(
         $('<canvas>').attr({
             id: 'chart',
@@ -54,25 +54,49 @@ function build_chart(results) {
         })
     ).appendTo('#results');
 
+    var weeks = $.map(results, function(element) {
+        return element['date'];
+    });
+    var vocabSizes = $.map(results, function(element) {
+        return element['vocab_size'];
+    });
+    var corpusSizes = $.map(results, function(element) {
+        return element['num_docs'];
+    });
     var blue = 'rgba(33, 150, 243,0.2)';
     var green = 'rgba(99, 210, 151, 0.2)';
     var newChart = new Chart($('#chart'), {
         type: 'line',
         data: {
-            labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-            datasets: [{
-                label: '# of Votes',
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: [
-                    green,
-                    blue,
-                ],
-                borderColor: [
-                    blue,
-                    green,
-                ],
-                borderWidth: 1
-            }]
+            labels: weeks,
+            datasets: [
+                {
+                    label: 'Corpus Size',
+                    data: corpusSizes,
+                    backgroundColor: [
+                        blue,
+                        green,
+                    ],
+                    borderColor: [
+                        blue,
+                        green,
+                    ],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Vocab Size',
+                    data: vocabSizes,
+                    backgroundColor: [
+                        green,
+                        blue,
+                    ],
+                    borderColor: [
+                        blue,
+                        green,
+                    ],
+                    borderWidth: 1
+                }
+            ]
         },
         options: {
             scales: {
