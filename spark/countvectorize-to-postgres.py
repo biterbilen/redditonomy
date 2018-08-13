@@ -4,9 +4,9 @@ import configparser
 import datetime
 from nltk.corpus import stopwords
 from pyspark.sql import SparkSession, Row
-from pyspark.sql.functions import to_date, lit, datediff, udf
+from pyspark.sql.functions import to_json, to_date, lit, datediff, udf, struct
 from pyspark.sql.types import *
-from pyspark.ml.feature import CountVectorizer
+from pyspark.ml.feature import CountVectorizer, StopWordsRemover
 from pyspark.ml import Pipeline
 from pyspark.ml.clustering import LDA, LDAModel
 from itertools import chain
@@ -23,26 +23,10 @@ def get_week_list():
 		[beginning + week_length*week_number, \
 		 beginning + week_length*(week_number+1)])
 
-def make_results(subreddit, date, vocab_size, num_docs, terms_and_scores):
-     def make_results(subreddit, date, vocab_size, num_docs, terms_and_scores):
-         """ expecting 3 columns in this order: date, subreddit, countvector"""
-
-         terms_and_scores = ['hello', 'banana']
-	 jsonresult = {
-	     "date": date,
-	     "results": terms_and_scores,
-	     "subreddit": subreddit,
-	     "vocab_size": vocab_size,
-	     "num_docs": num_docs
-	 }
-	 return str(jsonresult)
-
-     return udf(make_results, StringType())
-
-def indices_to_terms(vocabulary, scores):
+def indices_to_terms(vocabulary):
     def indices_to_terms(xs):
-        return [(vocabulary[int(x)], scores[int(x)]) for x in xs]
-    return udf(indices_to_terms, ArrayType(ArrayType()))
+        return [vocabulary[int(x)] for x in xs]
+    return udf(indices_to_terms, ArrayType(StringType()))
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
@@ -61,9 +45,10 @@ if __name__ == '__main__':
                                                               database=dbname)
     spark = SparkSession.builder \
             .appName('Count Vectorization') \
+            .config('spark.task.maxFailures', '20') \
             .config('spark.executor.cores', '6') \
             .config('spark.executor.memory', '6gb') \
-	    .config('spark.dynamicAllocation.enabled', False) \
+	        .config('spark.dynamicAllocation.enabled', False) \
      	    .config('spark.sql.session.timeZone', 'America/Los_Angeles') \
             .getOrCreate()
 
@@ -80,55 +65,67 @@ if __name__ == '__main__':
 
     subreddits = df.select('subreddit').distinct().collect()
     weeks = get_week_list()
-    cols = ['subreddit', 'week', 'tokens', 'num_docs', 'vocab_size']
-
+    cols = ['subreddit', 'date', 'results']
+    print subreddits
     for row in subreddits:
-	print row.subreddit
-	subreddit_df = df.filter(df.subreddit == row.subreddit).cache()
+    	print '-------------------{}----------------'.format(row.subreddit)
+    	subreddit_df = df.filter(df.subreddit == row.subreddit).cache()
         for i, week in enumerate(weeks):
+            print '========={}========'.format(week[0])
             tokens = df.filter(df.created_utc.between(lit(week[0]), lit(week[1]))) \
-                     .select('body') \
-                     .rdd.flatMap(lambda list: chain(*list)).collect()
-        
-	    numdocs = len(tokens)
+                     .select('body')
 
-	    line = (row.subreddit, week[0], tokens, numdocs, 0)
-	    week_df = spark.createDataFrame([line], cols)
-
-            cv = CountVectorizer(inputCol='tokens', outputCol='features', minDF=1.0)
-            lda = LDA(k=10, seed=1, maxIter=20, optimizer='online')
-	    pipeline = Pipeline(stages=[cv, lda])
-            
-            # Fit the pipeline to training documents.
-            model = pipeline.fit(week_df)
-
-	    prediction = model.transform(week_df)
-	    vocab = cv.fit(week_df)
-	    vocab_size = len(vocab.vocabulary)
-            prediction = prediction.withColumn(
-				'terms_and_scores',
-	        		indices_to_terms(
-				    vocab.vocabulary,
-				    prediction.topicDistribution)('features'))
-
-	    prediction.printSchema()
-	    prediction.show()
-#            prediction = prediction.withColumn(
-#				'results',
-#	        		make_results(
-#				    prediction.subreddit,
-#				    prediction.week,
-#				    prediction.vocab_size,
-#				    prediction.num_docs,
-#				    prediction.terms_and_scores
-#				))
-#
-#            prediction.select('subreddit', 'week', 'results').write.jdbc(
-# 		dburl, 'results',
-#                mode='append',
-#                properties={'user': dbuser, 'password': dbpwd}
-#            )
-	    break
-	    if i >10:  break
-        break
+    	    num_docs = tokens.count()
+            if num_docs < 1:
+                continue
     
+            remover = StopWordsRemover(inputCol='body', outputCol='filtered')
+            cv = CountVectorizer(inputCol='filtered', outputCol='features', minDF=1.0)
+            lda = LDA(k=5, maxIter=10, optimizer='online')
+    	    pipeline = Pipeline(stages=[remover, cv, lda])
+                
+            # Fit the pipeline to training documents.
+            model = pipeline.fit(tokens)
+    
+            cvmodel = model.stages[1]
+            vocabulary = cvmodel.vocabulary
+    	    vocab_size = len(vocabulary)
+
+            topics = model.stages[-1].describeTopics()   
+            topics = topics.withColumn(
+                'terms',
+                indices_to_terms(vocabulary)(topics.termIndices)
+            )
+            
+            results = topics.withColumn(
+                'results',
+                struct(topics.terms, topics.termWeights)) \
+                .select('results') \
+                .rdd.flatMap(lambda list: list).collect()
+
+            scores = []
+            for topic in results:
+                scores.append([
+                    (topic.terms[i], topic.termWeights[i]) for i in range(10)])
+            
+            val = Row(date=week[0], results=scores, subreddit=row.subreddit, \
+                      vocab_size=vocab_size, num_docs=num_docs)
+            line = (row.subreddit, week[0], val)
+            week_df = spark.createDataFrame([line], cols)
+
+            week_df.printSchema()
+            week_df = week_df.withColumn(
+                'date',
+                to_date(week_df.date))
+            week_df = week_df.withColumn(
+                'results',
+                to_json(week_df.results).cast(StringType()))
+
+            week_df.show(1)
+
+            week_df.write.jdbc(
+                dburl, 'newresults',
+                mode='append',
+                properties={'user': dbuser, 'password': dbpwd}
+            )
+
