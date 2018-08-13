@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div class="mui-row" style="margin-top: 20px;">
-                <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 20px; width: 400px; padding: 20px;">
+                <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 20px; width: 400px; padding: 20px; text-transform: lowercase;">
                     <option value=None>select a subreddit</option>
                     {% for subreddit in subreddits %}
                     <option value={{ subreddit }}>/r/{{ subreddit }}</option>
