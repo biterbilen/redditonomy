@@ -27,46 +27,28 @@
 
     <div class="mui-container" style="margin: 50px auto; margin-bottom: 0;">
         <div class="mui-panel" style="padding: 50px;">
-            <div class="mui--text-headline">
-                /r/edditonomy is a taxonomy builder for subreddit communities
+            <div class="mui-row">
+                <div class="mui--text-headline">
+                    /r/edditonomy is a taxonomy builder for subreddit communities
+                </div>
             </div>
-            <div class="mui--text-dark-secondary mui--text-title">
-                it uses latent dirichlet allocation for topic classification
+            <div class="mui-row">
+                <div class="mui--text-dark-secondary mui--text-title">
+                    it uses latent dirichlet allocation for topic classification
+                </div>
+            </div>
+            <div class="mui-row" style="margin-top: 20px;">
+                <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 20px; width: 400px; padding: 20px;">
+                    <option value=None>select a subreddit</option>
+                    {% for subreddit in subreddits %}
+                    <option value={{ subreddit }}>/r/{{ subreddit }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
     </div>
 
     <div class="mui-container" style="margin: 50px auto; margin-top: 0;">
-        <div class="mui-row">
-            <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
-                <div class="mui-panel" style="padding: 50px;">
-                    <div class="mui-row">
-                        <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
-                            <select id='subreddit-selector' class="mui-btn mui-btn--large mui-btn--primary" name="dropdown" style="font-size: 24px; width: 400px; padding: 20px;">
-                                <option value=None>select a subreddit</option>
-                                {% for subreddit in subreddits %}
-                                <option value={{ subreddit }}>/r/{{ subreddit }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mui-col-sm-6 mui-col-md-6 mui-col-lg-6">
-                            <h1 id="info" style="margin-top: 10px;">
-                                <span id="date"></span>
-                            </h1>
-                        </div>
-                    </div>
-                    <div class="mui-row">
-                        <div class="mui-col-sm-12 mui-col-md-12 mui-col-lg-12">
-                            <h2>choose a daterange</h2>
-                            <div id="rangeslider-wrapper" class="rangeslider-wrap">
-                                <input type="range" min="0" max="0" disabled>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div id="results" class="mui-row">
         </div>
     </div>
