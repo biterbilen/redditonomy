@@ -37,15 +37,15 @@ def query(subreddit):
         } for i in range(500)]
     return jsonify(results)
     """
-    query = sess.query(Results) \
-                .filter(Results.subreddit == subreddit) \
-                .order_by(Results.date) \
-                .all()
-
     key = cache.make_key(subreddit)
     value = cache.get(key)
 
     if not value:
+        query = sess.query(Results) \
+                    .filter(Results.subreddit == subreddit) \
+                    .order_by(Results.date) \
+                    .all()
         results = [json.loads(str(re.sub('\'', '\"', q.results))) for q in query]
         cache.set(key, results, ex=ONE_DAY)
+    else:
     return jsonify(results)

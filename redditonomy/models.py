@@ -28,13 +28,13 @@ class Redis(StrictRedis):
     params = {
         'host': redis_config.get('redis', 'ip'),
         'port': redis_config.get('redis', 'port'),
-        'auth': 'abbcd'#redis_config.get('info', 'auth')
+        'auth': redis_config.get('redis', 'auth')
     }
 
     def __init__(self):
         super(Redis, self).__init__(host=self.params['host'],
-                                    port=self.params['port']),
-                                    #password=self.params['auth'])
+                                    port=self.params['port'],
+                                    password=self.params['auth'])
 
     def make_key(self, subreddit=''):
         m = hashlib.md5()
