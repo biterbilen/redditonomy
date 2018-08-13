@@ -45,6 +45,7 @@ function build_taxonomy_table(name) {
 }
 
 function fill_taxonomy_table(results) {
+    $('#taxonomy tbody').empty();
     for (var i = 0; i < results.length; i++) {
         $('#taxonomy tbody')
             .append($('<tr>')
@@ -123,7 +124,18 @@ function build_chart(results) {
                     }
                 }]
             },
-            events: ['click', 'mousemove']
+            events: ['click', 'mousemove'],
+            onClick: function(event) {
+                var results = $(document).data('results');
+                var activePoints = newChart.getElementsAtEvent(event);
+                if (activePoints[0]) {
+                    var chartData = activePoints[0]['_chart'].config.data;
+                    var idx = activePoints[0]['_index'];
+                    var label = chartData.labels[idx];
+                    $('#date').text(label);
+                    fill_taxonomy_table(results[idx]['results']);
+                }
+            }
         }
     });
 
@@ -131,10 +143,8 @@ function build_chart(results) {
 
 $(document).ready(function() {
     $('#subreddit-selector').on('change', function() {
-        if (this.value) {
+        if (this.value != 'None') {
             var subreddit = this.value;
-
-            $(document).data('subreddit', subreddit);
 
             var url = "http://127.0.0.1:5001/q/" + subreddit;
             $.ajax({
@@ -153,26 +163,7 @@ $(document).ready(function() {
             build_chart(results);
             $('#date').text(results[0]['date']);
         } else {
-            $('#subreddit').text();
-            $('#date').text();
-        }
-    });
-
-    $('#chart').on('click', function(event) {
-        var activePoints = newChart.getElementsAtEvent(event);
-        console.log(activePoints);
-        if (activePoints[0]) {
-            var chartData = activePoints[0]['_chart'].config.data;
-            var idx = activePoints[0]['_index'];
-
-            var label = chartData.labels[idx];
-            var value = chartData.datasets[0].data[idx];
-
-            var url = "http://example.com/?label=" + label + "&value=" + value;
-            console.log(url);
-            alert(url);
-            // $('#date').text(date)
-            // update $('#taxonomy')
+            $('#results').empty();
         }
     });
 });
