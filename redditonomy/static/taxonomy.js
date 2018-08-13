@@ -16,11 +16,11 @@ function build_taxonomy_table(name) {
                     $('<div>').addClass(
                         'mui-col-sm-12'
                     ).append(
-                        $('h2').text(name)
+                        $('<h2>').text(name)
                     ).append(
-                        $('h3').addClass(
+                        $('<h3>').addClass(
                             'mui--text-accent-secondary'
-                        ).text(name)
+                        ).attr('id', 'date')
                     )
                 )
             ).append(
@@ -122,9 +122,11 @@ function build_chart(results) {
                         beginAtZero: true
                     }
                 }]
-            }
+            },
+            events: ['click', 'mousemove']
         }
     });
+
 }
 
 $(document).ready(function() {
@@ -145,22 +147,32 @@ $(document).ready(function() {
             });
 
             var results = $(document).data('results');
-            $('#subreddit').text('/r/' + subreddit);
 
-            $('#date').text('week of ' + results[0]['date']);
             build_taxonomy_table('online');
             fill_taxonomy_table(results[0]['results']);
-
-            $('#vocab').text('Vocab size: ' + results[0]['vocab_size']);
-            $('#documents').text('Number of documents: ' + results[0]['num_docs']);
-
-            var numweeks = results.length - 1;
-            $('#rangeslider-wrapper').empty()
-                .html('<input type="range" value="0" min="0" max="' + numweeks + '" step="1">');
             build_chart(results);
+            $('#date').text(results[0]['date']);
         } else {
             $('#subreddit').text();
             $('#date').text();
+        }
+    });
+
+    $('#chart').on('click', function(event) {
+        var activePoints = newChart.getElementsAtEvent(event);
+        console.log(activePoints);
+        if (activePoints[0]) {
+            var chartData = activePoints[0]['_chart'].config.data;
+            var idx = activePoints[0]['_index'];
+
+            var label = chartData.labels[idx];
+            var value = chartData.datasets[0].data[idx];
+
+            var url = "http://example.com/?label=" + label + "&value=" + value;
+            console.log(url);
+            alert(url);
+            // $('#date').text(date)
+            // update $('#taxonomy')
         }
     });
 });
