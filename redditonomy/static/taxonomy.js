@@ -1,6 +1,42 @@
 "use strict";
 
-function build_taxonomy_table(results) {
+function build_taxonomy_table(results, name) {
+    $('<div>').addClass(
+        'mui-col-sm-4 mui-col-md-4 mui-col-lg-4'
+    ).append(
+        $('<div>').addClass(
+            'mui-panel'
+        ).css({
+            'padding': '50px'
+        }).append(
+            $('<div>').addClass(
+                'mui-row'
+            ).append(
+                $('<div>').addClass(
+                    'mui-col-sm-12'
+                ).append(
+                    $('h2').text(name)
+                )
+            )
+        ).append(
+            $('<table>').addClass(
+                'mui-table mui-table--bordered'
+            ).attr(
+                'id', 'taxonomy'
+            ).append(
+                $('<thead>').append(
+                    $('<tr>').append(
+                        $('<th>').text('term')
+                    ).append(
+                        $('<th>').text('score')
+                    )
+                )
+            ).append(
+                $('<tbody>')
+            )
+        )
+    ).appendTo('#results');
+
     for (var i = 0; i < results.length; i++) {
         $('#taxonomy tbody')
             .append($('<tr>')
@@ -45,14 +81,20 @@ function initialize_slider() {
 
 function build_chart(results) {
     $('<div>').addClass(
-        'mui-col-sm-8 mui-col-sm-offset-2'
+        'mui-col-sm-8'
     ).append(
-        $('<canvas>').attr({
-            id: 'chart',
-            width: 600,
-            height: 400
-        })
-    ).appendTo('#results');
+        $('<div>').addClass(
+            'mui-panel'
+        ).css(
+            {'padding': '50px'}
+        ).append(
+            $('<canvas>').attr({
+                id: 'chart',
+                width: 600,
+                height: 400
+            })
+        )
+    ).prependTo('#results');
 
     var weeks = $.map(results, function(element) {
         return element['date'];
@@ -134,7 +176,7 @@ $(document).ready(function() {
 
             $('#date').text('week of ' + results[0]['date']);
             $('#taxonomy tbody').empty();
-            build_taxonomy_table(results[0]['results']);
+            build_taxonomy_table(results[0]['results'], 'online');
 
             $('#vocab').text('Vocab size: ' + results[0]['vocab_size']);
             $('#documents').text('Number of documents: ' + results[0]['num_docs']);
