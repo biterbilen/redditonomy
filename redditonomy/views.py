@@ -37,7 +37,10 @@ def query(subreddit):
         } for i in range(500)]
     return jsonify(results)
     """
-    query = sess.query(Results).filter(Results.subreddit == subreddit).all()
+    query = sess.query(Results) \
+                .filter(Results.subreddit == subreddit) \
+                .order_by(Results.date) \
+                .all()
 
     key = cache.make_key(subreddit)
     value = cache.get(key)
