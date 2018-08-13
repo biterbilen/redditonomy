@@ -132,7 +132,7 @@ function build_chart(results) {
                     var chartData = activePoints[0]['_chart'].config.data;
                     var idx = activePoints[0]['_index'];
                     var label = chartData.labels[idx];
-                    $('#date').text(label);
+                    $('#date').text(moment(label).format("MMM DD YYYY"));
                     fill_taxonomy_table(results[idx]['results']);
                 }
             }
@@ -161,7 +161,7 @@ $(document).ready(function() {
             build_taxonomy_table('online');
             fill_taxonomy_table(results[0]['results']);
             build_chart(results);
-            $('#date').text(results[0]['date']);
+            $('#date').text(moment(results[0]['date']).format("MMM DD YY"));
         } else {
             $('#results').empty();
         }
