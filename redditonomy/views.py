@@ -47,5 +47,4 @@ def query(subreddit):
                     .all()
         results = [json.loads(str(re.sub('\'', '\"', q.results))) for q in query]
         cache.set(key, results, ex=ONE_DAY)
-    else:
     return jsonify(results)
