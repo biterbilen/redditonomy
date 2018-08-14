@@ -48,9 +48,10 @@ function fill_taxonomy_table(results) {
     $('#taxonomy tbody').empty();
     for (var i = 0; i < results.length; i++) {
         $('#taxonomy tbody')
-            .append($('<tr>')
-                .append($('<td>').text(results[i][i]['_1']))
-                .append($('<td>').text(results[i][i]['_2']))
+            .append(
+                $('<tr>')
+                    .append($('<td>').text(results[i][i]['_1']))
+                    .append($('<td>').text(Math.round(results[i][i]['_2']*100000)/100000))
             );
     }
 }
@@ -61,9 +62,9 @@ function build_chart(results) {
     ).append(
         $('<div>').addClass(
             'mui-panel'
-        ).css(
-            {'padding': '50px'}
-        ).append(
+        ).css({
+            'padding': '50px'
+        }).append(
             $('<canvas>').attr({
                 id: 'chart',
                 width: 600,
@@ -87,8 +88,7 @@ function build_chart(results) {
         type: 'line',
         data: {
             labels: weeks,
-            datasets: [
-                {
+            datasets: [{
                     label: 'Corpus Size',
                     data: corpusSizes,
                     backgroundColor: [
@@ -99,7 +99,8 @@ function build_chart(results) {
                         blue,
                         green,
                     ],
-                    borderWidth: 1
+                    borderWidth: 1,
+                    radius: 5
                 },
                 {
                     label: 'Vocab Size',
@@ -112,7 +113,8 @@ function build_chart(results) {
                         blue,
                         green,
                     ],
-                    borderWidth: 1
+                    borderWidth: 1,
+                    radius: 5
                 }
             ]
         },
@@ -138,7 +140,6 @@ function build_chart(results) {
             }
         }
     });
-
 }
 
 $(document).ready(function() {
