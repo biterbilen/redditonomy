@@ -31,9 +31,7 @@ function build_taxonomy_table(name) {
                 ).append(
                     $('<thead>').append(
                         $('<tr>').append(
-                            $('<th>').text('term')
-                        ).append(
-                            $('<th>').text('score')
+                            $('<th>').text('topic')
                         )
                     )
                 ).append(
@@ -47,11 +45,11 @@ function build_taxonomy_table(name) {
 function fill_taxonomy_table(results) {
     $('#taxonomy tbody').empty();
     for (var i = 0; i < results.length; i++) {
+        console.log(results[i][i]);
         $('#taxonomy tbody')
             .append(
                 $('<tr>')
-                    .append($('<td>').text(results[i][i]['_1']))
-                    .append($('<td>').text(Math.round(results[i][i]['_2']*100000)/100000))
+                    .append($('<td>').text(results[i]))
             );
     }
 }
