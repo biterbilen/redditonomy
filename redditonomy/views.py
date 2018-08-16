@@ -16,9 +16,9 @@ cache = Redis()
 @app.route('/', methods=['GET'])
 def home():
     key = cache.make_key('subreddit_list')
-    value = cache.get(key)
+    subreddits = cache.get(key)
 
-    if not value:
+    if not subreddits:
         query = sess.query(Results).distinct(Results.subreddit).all()
         subreddits = [q.subreddit for q in query]
         cache.set(key, subreddits, ex=ONE_HOUR)
@@ -38,9 +38,9 @@ def query(subreddit):
     return jsonify(results)
     """
     key = cache.make_key(subreddit)
-    value = cache.get(key)
+    results = cache.get(key)
 
-    if not value:
+    if not results:
         query = sess.query(Results) \
                     .filter(Results.subreddit == subreddit) \
                     .order_by(Results.date) \
