@@ -15,9 +15,9 @@ The main value in such a platform is being able to automatically extract topics
 from these communities yielding highly desirable targeting abilities for ads and
 a deeper understanding of specific verticals.
 
-/r/edditonomy is a full-stack application that allows a user to find popular
+/r/edditonomy is a full-stack application that allows a user to explore
 subreddits and look at the main themes or taxonomies that emerge in those
-subcultures as a function of time.
+subcultures on a week-by-week basis
 
 ## Data
 Reddit comments are available as bz2 compressed files through
@@ -45,18 +45,17 @@ author_flair_text | str
 subreddit | str
 name | str
 
-- 0.9TB of comments for batch model processing
+- 1TB of comments for batch model processing
 
-## Relevant Technologies and Concepts
-S3, Spark, SparkML, PostgreSQL, Machine-learning, AirFlow, Redis
-
-## Proposed Architecture 
-- Raw sections of yearly data stored on S3.
-- Spark will batch ingest the comment data and store preprocessed results in PostgreSQL
-- Batch SparkML jobs will run builds for weekly data and store results in PostgresQL 
-- Redis cache will sit on top of PostgreSQL database to limit direct db interaction
-- Batch jobs will be mediated by AirFlow
-- Flask will query and present the data
+## Data Pipeline Architecture 
+- Raw data stored on S3 broken down by year, month
+- Data is pre-prcessed in Spark with intermediate results stored in S3
+- A SparkML Pipeline consisting of a Tokenizer, StopWordsRemover, CountVectorizer, and LDA 
+  is applied on a subreddit-by-week-by-week filtered Spark Dataframe, with results
+  stored in PostgreSQL
+- SparkML jobs are run using Luigi for the workflow manager
+- Redis is used as a caching layer to reduce latency and load on the PostgreSQL database
+- UI is served up using Flask
 <img src="./img/architecture.png" width="400px"/>
 
 ## Discovering Topics in a Corpus
@@ -66,3 +65,29 @@ concepts in a set of documents is called latent dirichlet allocation (LDA).
 SparkMLib has an implementation of LDA that is able to use two different types
 of optimization algorithms: expectation-maximization (EM) and online variational
 Bayes (online).
+
+## Setup
+Resource provisioning and cluster installation were done using the in-house
+[Pegasus](https://github.com/InsightDataScience/pegasus) tool.
+
+### Spark Cluster
+`peg up spark-cluster` with 1 master, 6 workers
+`peg install spark-cluster [ssh, environment, aws, hadoop, spark]`
+`peg service spark-cluster spark start`
+
+### PostgreSQL Cluster
+`peg up postgresdb-cluster` with 1 instance
+`peg install postgresdb-cluster [ssh, aws, environment]`
+
+PostgreSQL was installed via `apt`, and was set up following the Debian/Ubuntu
+instructions from this repository
+https://github.com/snowplow/snowplow/wiki/Setting-up-PostgreSQL .
+
+### Redis/Flask Server
+`peg up redis-cluster` with 1 master, 1 worker
+`peg install redis-cluster [ssh, environment, aws, redis]`
+`peg service redis-cluster redis start`
+
+The Flask app was served using nginx/gunicorn services from the same ec2
+instance as the Redis server to decrease latency.
+
