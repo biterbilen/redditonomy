@@ -71,22 +71,22 @@ Resource provisioning and cluster installation were done using the in-house
 [Pegasus](https://github.com/InsightDataScience/pegasus) tool.
 
 ### Spark Cluster
-`peg up spark-cluster` with 1 master, 6 workers
-`peg install spark-cluster [ssh, environment, aws, hadoop, spark]`
-`peg service spark-cluster spark start`
+`peg up spark-cluster` with 1 master, 6 workers  
+`peg install spark-cluster [ssh, environment, aws, hadoop, spark]`  
+`peg service spark-cluster spark start`  
 
 ### PostgreSQL Cluster
-`peg up postgresdb-cluster` with 1 instance
-`peg install postgresdb-cluster [ssh, aws, environment]`
+`peg up postgresdb-cluster` with 1 instance  
+`peg install postgresdb-cluster [ssh, aws, environment]`  
 
 PostgreSQL was installed via `apt`, and was set up following the Debian/Ubuntu
 instructions from this repository
 https://github.com/snowplow/snowplow/wiki/Setting-up-PostgreSQL .
 
 ### Redis/Flask Server
-`peg up redis-cluster` with 1 master, 1 worker
-`peg install redis-cluster [ssh, environment, aws, redis]`
-`peg service redis-cluster redis start`
+`peg up redis-cluster` with 1 master, 1 worker  
+`peg install redis-cluster [ssh, environment, aws, redis]`  
+`peg service redis-cluster redis start`  
 
 The Flask app was served using nginx/gunicorn services from the same ec2
 instance as the Redis server to decrease latency.
