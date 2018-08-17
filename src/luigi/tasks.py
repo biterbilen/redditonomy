@@ -52,12 +52,8 @@ class WriteToPG(CopyToTable):
     ]
 
     def input(self):
-        return S3Target('s3a://bkrull-insight-bucket/results/{subreddit}/{week}'.format(subreddit=self.subreddit, week=self.week))
+        return S3Target('s3a://bkrull-insight-bucket/results/{subreddit}/{week}'.format(
+            subreddit=self.subreddit, week=self.week))
 
     def requires(self):
         return BuildLDA(self.subreddit, self.week)
-
-
-    #subreddits = df.select('subreddit') \
-    #               .filter(df.subreddit == 'politics') \
-    #               .distinct().collect()

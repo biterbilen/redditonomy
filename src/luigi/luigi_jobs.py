@@ -16,7 +16,7 @@ class SubredditTask(luigi.WrapperTask):
         week_length = datetime.timedelta(days=7)
         
         weeks = []
-        for year in range(2008, 2015):
+        for year in range(2014, 2015):
             beginning = datetime.date(year, 01, 01)
             for week_number in range(0, 53):
                 week_start = beginning + week_length * week_number
@@ -25,6 +25,8 @@ class SubredditTask(luigi.WrapperTask):
         return weeks
 
 if __name__ == '__main__':
-    subreddit = 'politics'
+    subreddits = ['politics', 'worldnews', 'funny', \
+                  'askreddit', 'science', 'gaming', \
+                  'movies', 'music', 'explainlikeimfive', 'books']
 
-    luigi.build([SubredditTask(subreddit=subreddit)])
+    luigi.build([SubredditTask(subreddit=subreddit) for subreddit in subreddits])
