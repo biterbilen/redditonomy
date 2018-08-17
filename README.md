@@ -24,9 +24,9 @@ Reddit comments are available as bz2 compressed files through
 [archive.org](https://archive.org) broken down by year from its inception in
 2007 to 2015.
 
-The volume of comments has increased over the years from ~100MBs in 2007 to
-~30GBs per year. The data is a list of documents containing key, value pairs
-such as:
+The volume of comments has increased over the years from ~100MBs/month in 2007
+to ~30GBs/month, yielding approximately 1TB of uncompressed JSON data. The data
+is a list of documents containing key, value pairs such as:
 
 Key | Value Type
 ----| ----------
@@ -45,8 +45,6 @@ author_flair_text | str
 subreddit | str
 name | str
 
-- 1TB of comments for batch model processing
-
 ## Data Pipeline Architecture 
 - Raw data stored on S3 broken down by year, month
 - Data is pre-prcessed in Spark with intermediate results stored in S3
@@ -56,6 +54,7 @@ name | str
 - SparkML jobs are run using Luigi for the workflow manager
 - Redis is used as a caching layer to reduce latency and load on the PostgreSQL database
 - UI is served up using Flask
+
 <img src="./img/architecture.png" width="400px"/>
 
 ## Discovering Topics in a Corpus
