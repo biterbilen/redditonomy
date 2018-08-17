@@ -20,28 +20,23 @@ subreddits and look at the main themes or taxonomies that emerge in those
 subcultures on a week-by-week basis
 
 ## Data
+
 Reddit comments are available as bz2 compressed files through
 [archive.org](https://archive.org) broken down by year from its inception in
 2007 to 2015.
 
 The volume of comments has increased over the years from ~100MBs/month in 2007
-to ~30GBs/month, yielding approximately 1TB of uncompressed JSON data. The data
-is a list of documents containing key, value pairs such as:
+to ~30GBs/month, yielding approximately 1TB of uncompressed JSON data. This is
+approximately 1.5B comments. The data is a list of documents containing key,
+value pairs such as:
 
 Key | Value Type
 ----| ----------
-parent_id | str
 created_utc | int (utc)
-controversiality | int
-distinguished | null
-subreddit_id | str
 id | str
-downs | int
 score | int
 author | str
 body | str
-gilded | int
-author_flair_text | str
 subreddit | str
 name | str
 
@@ -57,13 +52,24 @@ name | str
 
 <img src="./img/architecture.png" width="400px"/>
 
-## Discovering Topics in a Corpus
+## Processing Workflow
 
-One of the more widely used statistical methods for determing the important
-concepts in a set of documents is called latent dirichlet allocation (LDA).
+The raw data is already batched into monthly blocks. Each block is read in from
+S3 as a spark dataframe, irrelevant columns are dropped, and a simple
+tokenization is applied to the 'body' column. This intermediate representation
+of the data is written back to S3 using a similar partition scheme.
+
+The tokenized comments are further prepared for LDA by aggregating the comments
+from a dataframe filtered by subreddit and week. Topic classification is done
+using a StopWordsRemover, CountVectorizer, and LDA pipeline. The output of LDA
+is then made into JSON in prep for access via Flask. The results are stored in a
+postgresql table with the schema `('subreddit', 'week', 'results')`
+
 SparkMLib has an implementation of LDA that is able to use two different types
 of optimization algorithms: expectation-maximization (EM) and online variational
-Bayes (online).
+Bayes (online). Here we employ only the 'online' algorithm, which is generally
+more cost effective, but may require more iterations to yield good
+classifications.
 
 ## Setup
 Resource provisioning and cluster installation were done using the in-house
